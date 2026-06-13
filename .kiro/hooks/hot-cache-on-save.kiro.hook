@@ -1,0 +1,8 @@
+{
+  "title": "Update Wiki Hot Cache",
+  "description": "When wiki pages are modified, update wiki/hot.md with a brief summary of what changed to maintain session continuity.",
+  "event": "file_saved",
+  "filePattern": "wiki/**/*.md",
+  "action": "agent_prompt",
+  "instruction": "A wiki page was just saved. Silently read wiki/hot.md, then update it with a brief summary of the recent change. The hot cache format is: Last Updated, Key Recent Facts, Recent Changes, Active Threads. Keep it under 500 words. Overwrite the file completely — it is a cache, not a journal. Do not announce this update to the user unless they ask about it."
+}

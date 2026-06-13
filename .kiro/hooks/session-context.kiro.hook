@@ -1,0 +1,7 @@
+{
+  "title": "Load Wiki Hot Cache on Session Start",
+  "description": "On prompt submit, if a wiki vault is configured in this project, silently read wiki/hot.md to restore recent context for continuity across sessions.",
+  "event": "prompt_submit",
+  "action": "shell_command",
+  "command": "cd \"$PROJECT_ROOT\" && [ -f wiki/hot.md ] && cat wiki/hot.md || true"
+}
