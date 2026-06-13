@@ -1,16 +1,15 @@
+---
+name: wiki-setup
+description: >
+  Sets up a persistent Obsidian wiki vault, scaffolds structure from a one-sentence
+  description, and routes to specialized sub-skills. Use for first-run setup, vault
+  scaffolding, and status checks.
+  Triggers on: "set up wiki", "scaffold vault", "create knowledge base", "/wiki",
+  "wiki setup", "obsidian vault", "second brain setup".
+allowed-tools: Read Write Edit Glob Grep Bash
+---
+
 # Wiki Setup & Scaffold
-
-## Description
-Sets up a persistent Obsidian wiki vault, scaffolds structure from a one-sentence description, and routes to specialized sub-skills. Use for first-run setup, vault scaffolding, and status checks.
-
-## Triggers
-- "set up wiki"
-- "scaffold vault"
-- "create knowledge base"
-- "/wiki"
-- "wiki setup"
-- "obsidian vault"
-- "second brain setup"
 
 ## Instructions
 

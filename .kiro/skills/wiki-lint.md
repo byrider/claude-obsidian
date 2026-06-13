@@ -1,16 +1,15 @@
+---
+name: wiki-lint
+description: >
+  Health-checks the Obsidian wiki vault. Finds orphan pages, dead wikilinks, stale
+  claims, missing cross-references, frontmatter gaps, and empty sections. Generates
+  reports and dashboards.
+  Triggers on: "lint", "health check", "clean up wiki", "check the wiki",
+  "wiki maintenance", "find orphans", "wiki audit".
+allowed-tools: Read Write Edit Glob Grep Bash
+---
+
 # Wiki Lint — Vault Health Check
-
-## Description
-Health-checks the Obsidian wiki vault. Finds orphan pages, dead wikilinks, stale claims, missing cross-references, frontmatter gaps, and empty sections. Generates reports and dashboards.
-
-## Triggers
-- "lint"
-- "health check"
-- "clean up wiki"
-- "check the wiki"
-- "wiki maintenance"
-- "find orphans"
-- "wiki audit"
 
 ## Instructions
 

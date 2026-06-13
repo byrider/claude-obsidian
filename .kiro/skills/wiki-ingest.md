@@ -1,16 +1,15 @@
+---
+name: wiki-ingest
+description: >
+  Reads a source document, extracts entities and concepts, creates or updates wiki
+  pages, cross-references everything, and logs the operation. Supports files, URLs,
+  images, and batch mode.
+  Triggers on: "ingest [file]", "process this source", "add this to the wiki",
+  "read and file this", "batch ingest", "ingest all of these", "ingest this url".
+allowed-tools: Read Write Edit Glob Grep Bash WebFetch
+---
+
 # Wiki Ingest — Source Ingestion
-
-## Description
-Reads a source document, extracts entities and concepts, creates or updates wiki pages, cross-references everything, and logs the operation. Supports files, URLs, images, and batch mode.
-
-## Triggers
-- "ingest [file]"
-- "process this source"
-- "add this to the wiki"
-- "read and file this"
-- "batch ingest"
-- "ingest all of these"
-- "ingest this url"
 
 ## Instructions
 

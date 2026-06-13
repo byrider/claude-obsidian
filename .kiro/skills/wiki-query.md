@@ -1,17 +1,15 @@
+---
+name: wiki-query
+description: >
+  Answers questions using the Obsidian wiki vault. Reads hot cache first, then index,
+  then relevant pages. Synthesizes answers with citations. Files good answers back
+  as wiki pages.
+  Triggers on: "what do you know about [X]", "query: [question]", "what is [X]",
+  "explain [X]", "summarize [X]", "find in wiki", "search the wiki".
+allowed-tools: Read Write Edit Glob Grep Bash
+---
+
 # Wiki Query — Answer Questions from the Vault
-
-## Description
-Answers questions using the Obsidian wiki vault. Reads hot cache first, then index, then relevant pages. Synthesizes answers with citations. Files good answers back as wiki pages.
-
-## Triggers
-- "what do you know about [X]"
-- "query: [question]"
-- "what is [X]"
-- "explain [X]"
-- "summarize [X]"
-- "find in wiki"
-- "search the wiki"
-- "based on the wiki"
 
 ## Instructions
 

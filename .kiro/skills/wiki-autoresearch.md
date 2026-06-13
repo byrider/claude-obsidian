@@ -1,16 +1,15 @@
+---
+name: wiki-autoresearch
+description: >
+  Autonomous iterative research loop. Takes a topic, runs web searches, fetches
+  sources, synthesizes findings, and files everything into the wiki as structured
+  pages. Configurable depth, source preferences, and constraints.
+  Triggers on: "/autoresearch [topic]", "research [topic]", "deep dive into [topic]",
+  "investigate [topic]", "find everything about [topic]", "go research".
+allowed-tools: Read Write Edit Glob Grep Bash WebFetch WebSearch
+---
+
 # Wiki AutoResearch — Autonomous Research Loop
-
-## Description
-Takes a topic, runs iterative web searches, fetches sources, synthesizes findings, and files everything into the wiki as structured pages. Configurable depth, source preferences, and constraints.
-
-## Triggers
-- "/autoresearch [topic]"
-- "autoresearch [topic]"
-- "research [topic]"
-- "deep dive into [topic]"
-- "investigate [topic]"
-- "find everything about [topic]"
-- "go research"
 
 ## Instructions
 

@@ -1,18 +1,15 @@
+---
+name: wiki-save
+description: >
+  Saves the current conversation, answer, or insight into the Obsidian wiki vault
+  as a structured note. Analyzes the chat, determines the right note type, creates
+  frontmatter, and files it in the correct wiki folder.
+  Triggers on: "/save", "/save [name]", "save this", "save that answer",
+  "file this", "save to wiki", "file this conversation", "keep this".
+allowed-tools: Read Write Edit Glob Grep Bash
+---
+
 # Wiki Save — File Conversations Into the Wiki
-
-## Description
-Saves the current conversation, answer, or insight into the Obsidian wiki vault as a structured note. Analyzes the chat, determines the right note type, creates frontmatter, and files it in the correct wiki folder.
-
-## Triggers
-- "/save"
-- "/save [name]"
-- "save this"
-- "save that answer"
-- "file this"
-- "save to wiki"
-- "file this conversation"
-- "keep this"
-- "save this analysis"
 
 ## Instructions
 

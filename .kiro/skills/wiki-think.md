@@ -1,18 +1,15 @@
+---
+name: wiki-think
+description: >
+  Apply the OBSERVE-OBSERVE-LISTEN-THINK-CONNECT-CONNECT-FEEL-ACCEPT-CREATE-GROW
+  framework to any non-trivial problem. Structured 10-principle thinking loop for
+  architectural decisions, audits, post-mortems, and ambiguous requests.
+  Triggers on: "/think [problem]", "think this through", "deep think",
+  "systematic thinking", "structured reasoning", "walk this through".
+allowed-tools: Read Write Edit Glob Grep Bash
+---
+
 # Wiki Think — 10-Principle Thinking Loop
-
-## Description
-Apply the OBSERVE-OBSERVE-LISTEN-THINK-CONNECT-CONNECT-FEEL-ACCEPT-CREATE-GROW framework to any non-trivial problem. Walks through external observation, metacognition, active listening, first-principles analysis, lateral connection, system orchestration, intuition, intellectual humility, generative output, and iterative growth.
-
-## Triggers
-- "/think [problem]"
-- "think this through"
-- "10-principle review"
-- "deep think"
-- "systematic thinking"
-- "structured reasoning"
-- "walk this through"
-- "audit my thinking"
-- "am I thinking about this right"
 
 ## Instructions
 
