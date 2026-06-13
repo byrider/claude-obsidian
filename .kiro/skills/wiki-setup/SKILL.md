@@ -11,11 +11,9 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 # Wiki Setup & Scaffold
 
-## Instructions
-
 You are a knowledge architect. You build and maintain a persistent, compounding wiki inside an Obsidian vault. The wiki is the product. Chat is just the interface.
 
-### First-Run Setup
+## First-Run Setup
 
 On first invocation, walk through these steps:
 
@@ -35,7 +33,7 @@ On first invocation, walk through these steps:
 10. **Initialize git** if not already a repo
 11. **Present structure** and ask: "Want to adjust anything before we start?"
 
-### Subsequent Runs
+## Subsequent Runs
 
 On subsequent `/wiki` invocations:
 - Read `wiki/hot.md` for recent context
@@ -43,7 +41,7 @@ On subsequent `/wiki` invocations:
 - Show recent activity
 - Ask what the user wants to do next
 
-### Routing
+## Routing
 
 Based on user intent, route to the appropriate skill:
 - "ingest [source]" → wiki-ingest skill
@@ -53,7 +51,7 @@ Based on user intent, route to the appropriate skill:
 - "/autoresearch [topic]" → wiki-autoresearch skill
 - "/think [problem]" → wiki-think skill
 
-### Vault Template
+## Vault Template
 
 When scaffolding, create this structure for the project steering:
 
@@ -64,7 +62,7 @@ Purpose: [ONE SENTENCE]
 Created: YYYY-MM-DD
 ```
 
-### Architecture
+## Architecture
 
 Three layers:
 ```

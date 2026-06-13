@@ -11,11 +11,9 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 # Wiki Query — Answer Questions from the Vault
 
-## Instructions
-
 The wiki has already done the synthesis work. Read strategically, answer precisely, cite sources, and file good answers back so knowledge compounds.
 
-### Query Modes
+## Query Modes
 
 | Mode | Trigger | Reads | Best for |
 |------|---------|-------|----------|
@@ -23,7 +21,7 @@ The wiki has already done the synthesis work. Read strategically, answer precise
 | **Standard** | default | hot.md + index + 3-5 pages | Most questions |
 | **Deep** | "query deep: ..." or "comprehensive" | Full wiki + optional web | Synthesis, comparisons |
 
-### Quick Mode
+## Quick Mode
 
 1. Read `wiki/hot.md`. If it answers the question, respond immediately.
 2. If not, read `wiki/index.md`. Scan for the answer.
@@ -31,7 +29,7 @@ The wiki has already done the synthesis work. Read strategically, answer precise
 
 Do NOT open individual wiki pages in quick mode.
 
-### Standard Query Workflow
+## Standard Query Workflow
 
 1. **Read** `wiki/hot.md` first
 2. **Read** `wiki/index.md` to find relevant pages
@@ -40,7 +38,7 @@ Do NOT open individual wiki pages in quick mode.
 5. **Offer to file**: "Should I save this as a wiki page?"
 6. If a **gap** is found: "I don't have enough on X. Want to find a source?"
 
-### Deep Mode
+## Deep Mode
 
 1. Read hot.md and index.md
 2. Identify ALL relevant sections
@@ -49,7 +47,7 @@ Do NOT open individual wiki pages in quick mode.
 5. Synthesize comprehensive answer with full citations
 6. Always file the result back as a wiki page
 
-### Hybrid Retrieval (if provisioned)
+## Hybrid Retrieval (if provisioned)
 
 If `scripts/retrieve.py` exists and BM25 index is built:
 ```bash
@@ -57,7 +55,7 @@ python3 scripts/retrieve.py "<question>" --top 5
 ```
 Use returned candidates before the legacy hot→index→drill chain.
 
-### Token Discipline
+## Token Discipline
 
 | Start with | When to stop |
 |------------|--------------|
@@ -66,7 +64,7 @@ Use returned candidates before the legacy hot→index→drill chain.
 | 3-5 wiki pages (~300 each) | Usually sufficient |
 | 10+ pages | Only for full-wiki synthesis |
 
-### Filing Answers Back
+## Filing Answers Back
 
 Good answers compound into the wiki. When filing:
 
@@ -87,7 +85,7 @@ status: developing
 
 After filing: update `wiki/index.md` under Questions, append to `wiki/log.md`.
 
-### Gap Handling
+## Gap Handling
 
 If the question cannot be answered from the wiki:
 1. Say clearly: "I don't have enough in the wiki to answer this."

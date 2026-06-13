@@ -11,11 +11,9 @@ allowed-tools: Read Write Edit Glob Grep Bash
 
 # Wiki Save — File Conversations Into the Wiki
 
-## Instructions
-
 Good answers and insights shouldn't disappear into chat history. Take what was discussed and file it as a permanent wiki page. The wiki compounds. Save often.
 
-### Note Type Decision
+## Note Type Decision
 
 | Type | Folder | Use when |
 |------|--------|---------|
@@ -27,14 +25,14 @@ Good answers and insights shouldn't disappear into chat history. Take what was d
 
 If the user specifies a type, use that. Otherwise, pick the best fit. When in doubt, use `synthesis`.
 
-### Mode Awareness
+## Mode Awareness
 
 Before creating the note, consult the mode router:
 ```bash
 python3 scripts/wiki-mode.py route session "<topic-summary>"
 ```
 
-### Save Workflow
+## Save Workflow
 
 1. **Scan** the current conversation — identify the most valuable content
 2. **Ask** (if not already named): "What should I call this note?"
@@ -53,7 +51,7 @@ python3 scripts/wiki-mode.py route session "<topic-summary>"
 9. **Update** `wiki/hot.md` to reflect the addition
 10. **Confirm**: "Saved as [[Note Title]] in wiki/[folder]/."
 
-### Writing Style
+## Writing Style
 
 - Declarative, present tense — write the knowledge, not the conversation
 - NOT: "The user asked about X and Kiro explained..."
@@ -62,7 +60,7 @@ python3 scripts/wiki-mode.py route session "<topic-summary>"
 - Link every mentioned concept/entity with wikilinks
 - Cite sources: `(Source: [[Page]])`
 
-### What to Save vs. Skip
+## What to Save vs. Skip
 
 **Save:**
 - Non-obvious insights or synthesis
@@ -76,7 +74,7 @@ python3 scripts/wiki-mode.py route session "<topic-summary>"
 - Temporary debugging with no lasting insight
 - Anything already in the wiki (update existing page instead)
 
-### Frontmatter Template
+## Frontmatter Template
 
 ```yaml
 ---
@@ -92,7 +90,7 @@ related:
 ---
 ```
 
-### Concurrency
+## Concurrency
 
 Lock before writing:
 ```bash

@@ -11,18 +11,16 @@ allowed-tools: Read Write Edit Glob Grep Bash WebFetch
 
 # Wiki Ingest — Source Ingestion
 
-## Instructions
-
 Read the source. Write the wiki. Cross-reference everything. A single source typically touches 8-15 wiki pages.
 
-### Transport
+## Transport
 
 Before mutating any vault file, check `.vault-meta/transport.json`:
 - **cli** — `obsidian-cli write "$VAULT" "$NOTE" < content.md`
 - **mcp** — MCP tools if configured
 - **filesystem** — direct file writes (always works)
 
-### Mode Awareness
+## Mode Awareness
 
 Before creating any new page, consult the methodology mode:
 ```bash
@@ -30,7 +28,7 @@ python3 scripts/wiki-mode.py route <type> "<name>"
 ```
 This returns the correct vault-relative path for the page based on the active mode.
 
-### Concurrency
+## Concurrency
 
 Every wiki page write MUST be preceded by lock acquisition:
 ```bash
@@ -39,14 +37,14 @@ bash scripts/wiki-lock.sh acquire <path>
 bash scripts/wiki-lock.sh release <path>
 ```
 
-### Delta Tracking
+## Delta Tracking
 
 Before ingesting, check `.raw/.manifest.json` to avoid re-processing unchanged sources:
 1. Compute hash: `md5sum [file] | cut -d' ' -f1`
 2. If hash matches manifest entry, skip (report "Already ingested")
 3. After ingesting, record hash + pages created/updated in manifest
 
-### URL Ingestion
+## URL Ingestion
 
 When user passes a URL:
 1. Fetch the page content
@@ -54,7 +52,7 @@ When user passes a URL:
 3. Save to `.raw/articles/[slug]-[YYYY-MM-DD].md`
 4. Proceed with single source ingest
 
-### Single Source Ingest Workflow
+## Single Source Ingest Workflow
 
 1. **Read** the source completely — no skimming
 2. **Discuss** key takeaways (skip if user says "just ingest it")
@@ -74,7 +72,7 @@ When user passes a URL:
     ```
 11. **Check for contradictions** — add `> [!contradiction]` callouts if conflicts found
 
-### Batch Ingest
+## Batch Ingest
 
 1. List all files to process, confirm with user
 2. Process each source following single ingest flow
@@ -82,7 +80,7 @@ When user passes a URL:
 4. Update index, hot cache, and log once at the end
 5. Report summary
 
-### Frontmatter Schema (Sources)
+## Frontmatter Schema (Sources)
 
 ```yaml
 ---
@@ -105,7 +103,7 @@ related:
 ---
 ```
 
-### Contradictions
+## Contradictions
 
 When new info contradicts existing pages, add callouts on BOTH pages:
 ```markdown
@@ -116,7 +114,7 @@ When new info contradicts existing pages, add callouts on BOTH pages:
 
 Do NOT silently overwrite old claims. Flag and let the user decide.
 
-### Rules
+## Rules
 - Source files under `.raw/` are **immutable** — never modify them
 - Always check the index before creating pages (avoid duplicates)
 - Every ingest must be recorded in the log

@@ -11,15 +11,13 @@ allowed-tools: Read Write Edit Glob Grep Bash WebFetch WebSearch
 
 # Wiki AutoResearch — Autonomous Research Loop
 
-## Instructions
-
 You are a research agent. Take a topic, run iterative web searches, synthesize findings, and file everything into the wiki. The user gets wiki pages, not a chat response.
 
-### Before Starting
+## Before Starting
 
 Read `skills/autoresearch/references/program.md` to load research objectives and constraints (max rounds, source preferences, confidence scoring, domain constraints).
 
-### Topic Selection
+## Topic Selection
 
 Three paths:
 
@@ -35,7 +33,7 @@ Present frontier pages as candidates. User picks, overrides, or declines.
 
 **C. User-chosen** — ask: "What topic should I research?"
 
-### Research Loop
+## Research Loop
 
 ```
 Round 1: Broad Search
@@ -56,7 +54,7 @@ Round 3: Synthesis Check (optional, if gaps remain)
 Max rounds: 3. Stop when depth is reached or max rounds hit.
 ```
 
-### Web Egress Hygiene
+## Web Egress Hygiene
 
 Before each fetch:
 - **Reject**: `file://`, `javascript:`, `data:` schemes
@@ -66,28 +64,17 @@ Before each fetch:
 - **Truncate**: fetched bodies to ~50KB
 - **On failure**: log URL + reason to `wiki/log.md`, continue loop
 
-### Filing Results
+## Filing Results
 
 After research, create these pages:
 
-**Source pages** — one per major reference:
-```yaml
----
-type: source
-source_type: article | paper | website
-author: "Author"
-date_published: YYYY-MM-DD
-url: "https://..."
-confidence: high | medium | low
-key_claims: ["Claim 1", "Claim 2"]
----
-```
+**Source pages** — one per major reference found.
+**Concept pages** — one per significant concept extracted.
+**Entity pages** — one per significant person, org, or product.
+**Synthesis page** — master synthesis at `wiki/questions/Research: [Topic].md`.
 
-**Concept pages** — one per significant concept extracted
+### Synthesis Page Structure
 
-**Entity pages** — one per significant person, org, or product
-
-**Synthesis page** — master synthesis at `wiki/questions/Research: [Topic].md`:
 ```markdown
 ---
 type: synthesis
@@ -95,6 +82,8 @@ title: "Research: [Topic]"
 created: YYYY-MM-DD
 tags: [research, topic-tag]
 status: developing
+related:
+  - "[[Every page created in this session]]"
 ---
 
 # Research: [Topic]
@@ -121,7 +110,7 @@ status: developing
 - [[Source 1]]: author, date
 ```
 
-### After Filing
+## After Filing
 
 1. Update `wiki/index.md` — add all new pages
 2. Append to `wiki/log.md` (at TOP):
@@ -134,25 +123,7 @@ status: developing
    ```
 3. Update `wiki/hot.md`
 
-### Report to User
-
-```
-Research complete: [Topic]
-Rounds: N | Searches: N | Pages created: N
-
-Created:
-  wiki/questions/Research: [Topic].md (synthesis)
-  wiki/sources/[Source 1].md
-  wiki/concepts/[Concept 1].md
-
-Key findings:
-- [Finding 1]
-- [Finding 2]
-
-Open questions filed: N
-```
-
-### Mode Awareness
+## Mode Awareness
 
 Route ALL new pages through the mode router:
 ```bash
@@ -161,7 +132,7 @@ python3 scripts/wiki-mode.py route entity "<entity-name>"
 python3 scripts/wiki-mode.py route concept "<concept-name>"
 ```
 
-### Concurrency
+## Concurrency
 
 Every page write must be locked:
 ```bash
