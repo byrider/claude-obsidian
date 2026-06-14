@@ -57,7 +57,17 @@ fi
 
 **Kiro CLI sessions:**
 ```bash
-kiro session list --format json 2>/dev/null || kiro session list 2>/dev/null
+# List sessions for the current directory
+kiro-cli chat --list-sessions --format json 2>/dev/null
+```
+
+Session files are stored at `~/.kiro/sessions/cli/`:
+- `{session_id}.json` — metadata (cwd, timestamps, title)
+- `{session_id}.jsonl` — append-only conversation log
+
+To extract content, read the `.jsonl` files directly:
+```bash
+find ~/.kiro/sessions/cli -name "*.jsonl" -type f 2>/dev/null | head -50
 ```
 
 **Claude Code sessions:**
@@ -109,12 +119,9 @@ Extract: user messages, assistant responses, tool calls (both structured and tex
 
 ### Kiro CLI Format
 
-Use the built-in export:
-```bash
-kiro session export <session-id> --format markdown
-# or
-kiro session export <session-id> --format json
-```
+Sessions are stored as JSONL files at `~/.kiro/sessions/cli/{session_id}.jsonl`. Each line is a conversation turn. Read the `.jsonl` file directly and parse line-by-line.
+
+Metadata (title, timestamps, cwd) is in the companion `{session_id}.json` file.
 
 If export is unavailable, sessions are stored per-directory in the Kiro database.
 

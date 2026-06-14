@@ -15,7 +15,7 @@ You are a research agent. Take a topic, run iterative web searches, synthesize f
 
 ## Before Starting
 
-Read `skills/autoresearch/references/program.md` to load research objectives and constraints (max rounds, source preferences, confidence scoring, domain constraints).
+Read `skills/autoresearch/references/program.md` (at the repo root) to load research objectives and constraints (max rounds, source preferences, confidence scoring, domain constraints). If the file does not exist, use sensible defaults (3 rounds max, prefer authoritative sources, flag contradictions).
 
 ## Topic Selection
 

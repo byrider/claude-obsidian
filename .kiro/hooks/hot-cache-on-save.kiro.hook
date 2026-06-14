@@ -11,6 +11,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A wiki page was just saved. Silently read wiki/hot.md, then update it with a brief summary of the recent change. The hot cache format is: Last Updated, Key Recent Facts, Recent Changes, Active Threads. Keep it under 500 words. Overwrite the file completely — it is a cache, not a journal. Do not announce this update to the user unless they ask about it."
+    "prompt": "A wiki page was just saved. First check: if the only file that changed is wiki/hot.md itself, do nothing and stop (this prevents an infinite loop). Otherwise, silently read wiki/hot.md, then update it with a brief summary of the recent change. The hot cache format is: Last Updated, Key Recent Facts, Recent Changes, Active Threads. Keep it under 500 words. Overwrite the file completely — it is a cache, not a journal. Do not announce this update to the user unless they ask about it."
   }
 }

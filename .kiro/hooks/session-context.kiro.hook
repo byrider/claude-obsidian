@@ -1,13 +1,13 @@
 {
   "enabled": true,
   "name": "Load Wiki Hot Cache on Prompt",
-  "description": "On prompt submit, load wiki/hot.md to provide recent context for continuity across sessions.",
+  "description": "On prompt submit, load wiki/hot.md to provide recent context for continuity across sessions. Only outputs if wiki/hot.md exists and has been initialized (not a fresh scaffold).",
   "version": "1",
   "when": {
     "type": "promptSubmit"
   },
   "then": {
     "type": "runCommand",
-    "command": "[ -f wiki/hot.md ] && cat wiki/hot.md || true"
+    "command": "[ -f wiki/hot.md ] && grep -q 'No ingests yet' wiki/hot.md && exit 0; [ -f wiki/hot.md ] && cat wiki/hot.md || true"
   }
 }
