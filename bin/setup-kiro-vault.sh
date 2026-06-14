@@ -160,11 +160,11 @@ echo "  ✓ Wiki directories present"
 
 # Create hot.md if missing
 if [ ! -f "$VAULT_ROOT/wiki/hot.md" ]; then
-  cat > "$VAULT_ROOT/wiki/hot.md" << 'EOF'
+  cat > "$VAULT_ROOT/wiki/hot.md" << EOF
 ---
 type: meta
 title: "Hot Cache"
-updated: 2026-01-01T00:00:00
+updated: $(date '+%Y-%m-%dT%H:%M:%S')
 ---
 
 # Recent Context
@@ -187,11 +187,11 @@ fi
 
 # Create index.md if missing
 if [ ! -f "$VAULT_ROOT/wiki/index.md" ]; then
-  cat > "$VAULT_ROOT/wiki/index.md" << 'EOF'
+  cat > "$VAULT_ROOT/wiki/index.md" << EOF
 ---
 type: meta
 title: "Master Index"
-updated: 2026-01-01
+updated: $(date '+%Y-%m-%d')
 ---
 
 # Wiki Index

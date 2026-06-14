@@ -4,8 +4,12 @@
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/byrider/claude-obsidian/kiro-port/bin/install-kiro.sh | bash
 #
+# Pin to a specific commit:
+#   curl -fsSL https://raw.githubusercontent.com/byrider/claude-obsidian/kiro-port/bin/install-kiro.sh | bash -s -- --version=2fad8c5
+#
 # Or locally:
 #   bash bin/install-kiro.sh [target-directory]
+#   bash bin/install-kiro.sh --version=v1.0.0 [target-directory]
 #
 # What it does:
 #   1. Downloads the .kiro/ directory (skills, hooks, steering)
@@ -20,10 +24,21 @@ set -euo pipefail
 REPO_OWNER="byrider"
 REPO_NAME="claude-obsidian"
 BRANCH="kiro-port"
+
+# Parse --version flag (accepts branch name, tag, or commit SHA)
+TARGET_DIR=""
+for arg in "$@"; do
+  case "$arg" in
+    --version=*) BRANCH="${arg#--version=}" ;;
+    -*) echo "Unknown option: $arg"; exit 1 ;;
+    *) TARGET_DIR="$arg" ;;
+  esac
+done
+
 RAW_BASE="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
 
 # --- Target directory ---
-TARGET_DIR="${1:-$(pwd)}"
+TARGET_DIR="${TARGET_DIR:-$(pwd)}"
 TARGET_DIR="$(cd "$TARGET_DIR" 2>/dev/null && pwd || echo "$TARGET_DIR")"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -37,6 +52,12 @@ echo ""
 if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
   echo "ERROR: curl or wget required. Install one and retry."
   exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "WARNING: python3 not found. Scripts (wiki-mode.py, boundary-score.py, retrieve.py) will not work."
+  echo "         Install Python 3 and retry, or continue without script support."
+  echo ""
 fi
 
 # Helper: download a file

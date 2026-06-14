@@ -38,7 +38,7 @@ When the user says "ingest this code summary" after running `/code summary`:
 ### B. Direct Codebase Scan
 
 When the user says "map this codebase" or "ingest codebase [path]":
-1. Read the project structure: `find . -type f | head -200` or `tree -L 3`
+1. Read the project structure using `glob` with pattern `**/*` (depth-limited)
 2. Identify key files: README, package.json/Cargo.toml/go.mod, API specs, schemas
 3. Read and summarize architecture-level files only (not every source file)
 4. Create the codebase map page
@@ -120,14 +120,9 @@ related:
 
 Before writing any code page, check if it already exists:
 
-```bash
-# Check for existing codebase map
-EXISTING=$(find wiki/codebases -name "*project-name*" 2>/dev/null | head -1)
-if [ -n "$EXISTING" ]; then
-  # UPDATE mode: read existing, merge new info, preserve manual edits
-else
-  # CREATE mode: new codebase map from scratch
-fi
+Use the `glob` tool to search for existing codebase maps:
+```
+glob pattern: "wiki/codebases/*project-name*"
 ```
 
 **Update rules:**
