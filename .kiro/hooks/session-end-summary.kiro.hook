@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Wiki Session End Summary",
+  "description": "When the agent stops, check if wiki pages were modified and update the hot cache with a summary of changes.",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check if any wiki pages were modified this session by running: git diff --name-only HEAD 2>/dev/null | grep '^wiki/'. If wiki pages were changed, update wiki/hot.md with a brief summary of what changed (under 500 words). Use the hot cache format: Last Updated, Key Recent Facts, Recent Changes, Active Threads. Keep it factual. Overwrite the file completely. It is a cache, not a journal."
+  }
+}

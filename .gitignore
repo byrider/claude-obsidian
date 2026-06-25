@@ -132,3 +132,21 @@ _attachments/
 # v1.8 methodology mode (host-specific by default; `git add -f` to commit if desired)
 .vault-meta/mode.json
 .vault-meta/mode.*.tmp
+
+
+# Shared-vault layer: host-specific / regenerable, never shared across surfaces
+# hot.md is a per-host recent-context cache; regenerate locally, do not commit (avoids
+# constant merge conflicts when the vault is shared across IDE/CLI/Web).
+wiki/hot.md
+# Opt-in sentinel for the auto-commit-wiki hook; present only on trusted local machines.
+.vault-meta/auto-commit.enabled
+
+
+# Defense-in-depth: ensure the Kiro config IS tracked even if a user's global
+# gitignore (~/.config/git/ignore) excludes .kiro. Tracking it is the whole point
+# of this port, so re-include the directory and its contents explicitly.
+!.kiro/
+!.kiro/**
+# Batch-operation sentinel: set by batch skills (ingest/lint) to suppress the
+# hot-cache-on-save hook during bulk edits; host-specific runtime, never shared.
+.vault-meta/batch-in-progress

@@ -109,6 +109,38 @@ FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 ADDRESS_RE = re.compile(r"^address:\s*(c-\d{6})\s*$", re.MULTILINE)
 TITLE_RE = re.compile(r"^title:\s*['\"]?(.+?)['\"]?\s*$", re.MULTILINE)
 
+# Secret patterns scrubbed from any text before it is logged. Tier-1/2 prefix
+# generation handles credentials (the API key lives in a request header), and an
+# HTTPError or subprocess stderr can echo the surrounding request/env. Audit
+# finding S4: redact before logging so a key never lands in stderr, a wiki page,
+# or log.md. Order does not matter; every pattern is applied.
+SECRET_PATTERNS = [
+    re.compile(r"sk-ant-[A-Za-z0-9_\-]{16,}"),       # Anthropic
+    re.compile(r"sk-[A-Za-z0-9_\-]{16,}"),           # OpenAI-style
+    re.compile(r"AKIA[0-9A-Z]{16}"),                 # AWS access key id
+    re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),       # GitHub tokens
+    re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),     # Slack tokens
+    re.compile(r"AIza[0-9A-Za-z_\-]{20,}"),          # Google API key
+    re.compile(r"eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"),  # JWT
+    re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-]{10,}"),  # bearer tokens
+]
+
+
+def redact(text, extra=None):
+    """Return text with known secret shapes and any explicit values replaced by
+    [REDACTED]. `extra` is a list of literal strings (e.g. the live API key) to
+    scrub verbatim before the pattern pass. Safe on None/non-str input.
+    """
+    if text is None:
+        return text
+    s = str(text)
+    for val in (extra or []):
+        if val:
+            s = s.replace(val, "[REDACTED]")
+    for pat in SECRET_PATTERNS:
+        s = pat.sub("[REDACTED]", s)
+    return s
+
 
 def log(msg):
     print(msg, file=sys.stderr)
@@ -262,7 +294,7 @@ def anthropic_api_prefix(api_key, page_title, page_body, chunk_text):
                 if block.get("type") == "text":
                     return block["text"].strip().splitlines()[0]
     except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
-        log(f"  anthropic-api call failed: {e}")
+        log(f"  anthropic-api call failed: {redact(e, extra=[api_key])}")
         return None
     return None
 
@@ -286,9 +318,9 @@ def claude_cli_prefix(page_title, page_body, chunk_text):
         )
         if result.returncode == 0 and result.stdout.strip():
             return result.stdout.strip().splitlines()[0]
-        log(f"  claude-cli rc={result.returncode}: {result.stderr.strip()[:200]}")
+        log(f"  claude-cli rc={result.returncode}: {redact(result.stderr.strip()[:200])}")
     except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-        log(f"  claude-cli call failed: {e}")
+        log(f"  claude-cli call failed: {redact(e)}")
     return None
 
 

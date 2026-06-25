@@ -82,6 +82,18 @@ LOCK_DIR="${META_DIR}/locks"
 META_LOCK="${META_DIR}/.wiki-lock.meta"
 STALE_AFTER_SEC=60
 
+# ── opt-in check ─────────────────────────────────────────────────────────────
+# Locking is off by default for single-user vaults. Enable with:
+#   echo '{"concurrency": "multi-session"}' > .vault-meta/concurrency.json
+# When disabled, acquire/release are no-ops (exit 0).
+if [ ! -f "${META_DIR}/concurrency.json" ] || ! grep -q '"multi-session"' "${META_DIR}/concurrency.json" 2>/dev/null; then
+  case "${1:-}" in
+    acquire|release|peek) exit 0 ;;
+    list) exit 0 ;;
+    clear-stale) echo "0"; exit 0 ;;
+  esac
+fi
+
 # ── helpers ──────────────────────────────────────────────────────────────────
 die() { echo "ERR: $*" >&2; exit "${2:-2}"; }
 log() { echo "$*" >&2; }
