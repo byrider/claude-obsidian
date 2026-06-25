@@ -11,12 +11,19 @@
 #   bash bin/install-kiro.sh [target-directory]
 #   bash bin/install-kiro.sh --version=v1.0.0 [target-directory]
 #
+# Integrity:
+#   By default every downloaded file is verified against the SHA256SUMS manifest
+#   published at the same ref. A checksum mismatch aborts the install.
+#     --no-verify   skip checksum verification (not recommended)
+#     --strict      also fail if the manifest or a sha256 tool is unavailable
+#
 # What it does:
 #   1. Downloads the .kiro/ directory (skills, hooks, steering)
 #   2. Downloads supporting scripts (wiki-lock, wiki-mode, detect-transport, etc.)
 #   3. Downloads templates and bin/setup-kiro-vault.sh
-#   4. Runs setup-kiro-vault.sh to configure Obsidian and wiki structure
-#   5. Reports what was installed
+#   4. Verifies each file against SHA256SUMS (unless --no-verify)
+#   5. Runs setup-kiro-vault.sh to configure Obsidian and wiki structure
+#   6. Reports what was installed
 
 set -euo pipefail
 
@@ -25,11 +32,15 @@ REPO_OWNER="byrider"
 REPO_NAME="claude-obsidian"
 BRANCH="kiro-port"
 
-# Parse --version flag (accepts branch name, tag, or commit SHA)
+# Parse flags
 TARGET_DIR=""
+VERIFY=true
+STRICT=false
 for arg in "$@"; do
   case "$arg" in
     --version=*) BRANCH="${arg#--version=}" ;;
+    --no-verify) VERIFY=false ;;
+    --strict) STRICT=true ;;
     -*) echo "Unknown option: $arg"; exit 1 ;;
     *) TARGET_DIR="$arg" ;;
   esac
@@ -60,17 +71,81 @@ if ! command -v python3 >/dev/null 2>&1; then
   echo ""
 fi
 
-# Helper: download a file
-download() {
-  local url="$1"
-  local dest="$2"
-  mkdir -p "$(dirname "$dest")"
-  if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$url" -o "$dest" 2>/dev/null
+# --- Integrity verification (audit S3) ---
+# Verify every downloaded file against a SHA256SUMS manifest fetched from the same
+# ref. Catches partial downloads, CDN corruption, and in-transit tampering of
+# individual files. Uses awk lookups (not bash-4 associative arrays) so it works
+# on the macOS system bash 3.2. Regenerate the manifest with bin/gen-sha256sums.sh.
+MANIFEST_FILE=""
+
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
   else
-    wget -q "$url" -O "$dest" 2>/dev/null
+    echo ""
   fi
 }
+
+load_manifest() {
+  $VERIFY || return 0
+  MANIFEST_FILE="$(mktemp 2>/dev/null || echo "/tmp/sha256sums.$$")"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "${RAW_BASE}/SHA256SUMS" -o "$MANIFEST_FILE" 2>/dev/null || MANIFEST_FILE=""
+  else
+    wget -q "${RAW_BASE}/SHA256SUMS" -O "$MANIFEST_FILE" 2>/dev/null || MANIFEST_FILE=""
+  fi
+  if [ -z "$MANIFEST_FILE" ] || [ ! -s "$MANIFEST_FILE" ]; then
+    echo "  ! could not fetch SHA256SUMS manifest for ref '${BRANCH}'"
+    if $STRICT; then echo "    (--strict) aborting."; exit 1; fi
+    echo "    continuing WITHOUT checksum verification."
+    MANIFEST_FILE=""
+  fi
+}
+
+# verify_file <repo-relative-path> <local-dest>  ->  0 ok | 1 mismatch/hard-fail
+verify_file() {
+  $VERIFY || return 0
+  [ -n "$MANIFEST_FILE" ] || return 0
+  local repo_path="$1" dest="$2" expected actual
+  expected="$(awk -v p="$repo_path" '{f=$2; sub(/^\*/,"",f); if (f==p){print $1; exit}}' "$MANIFEST_FILE")"
+  if [ -z "$expected" ]; then
+    echo "  ! no checksum listed for ${repo_path}"
+    $STRICT && return 1 || return 0
+  fi
+  actual="$(sha256_of "$dest")"
+  if [ -z "$actual" ]; then
+    echo "  ! no sha256 tool (install sha256sum or shasum); cannot verify ${repo_path}"
+    $STRICT && return 1 || return 0
+  fi
+  if [ "$expected" != "$actual" ]; then
+    echo "  ✗ CHECKSUM MISMATCH: ${repo_path}"
+    echo "      expected: ${expected}"
+    echo "      actual:   ${actual}"
+    return 1
+  fi
+  return 0
+}
+
+# Helper: download a repo file by its repo-relative path, then verify it.
+# Returns: 0 ok | 1 download failed (404/network) | 2 checksum mismatch
+download() {
+  local repo_path="$1"
+  local dest="$2"
+  local url="${RAW_BASE}/${repo_path}"
+  mkdir -p "$(dirname "$dest")"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$dest" 2>/dev/null || return 1
+  else
+    wget -q "$url" -O "$dest" 2>/dev/null || return 1
+  fi
+  verify_file "$repo_path" "$dest" || return 2
+  return 0
+}
+
+# Fetch the integrity manifest before downloading anything else.
+load_manifest
 
 # --- Step 1: Install .kiro/ directory ---
 echo "[1/5] Installing Kiro skills..."
@@ -88,8 +163,10 @@ SKILLS=(
 )
 
 for skill in "${SKILLS[@]}"; do
-  download "${RAW_BASE}/.kiro/skills/${skill}/SKILL.md" \
-           "${TARGET_DIR}/.kiro/skills/${skill}/SKILL.md"
+  if ! download ".kiro/skills/${skill}/SKILL.md" \
+                "${TARGET_DIR}/.kiro/skills/${skill}/SKILL.md"; then
+    echo "  ✗ failed to install or verify skill: ${skill}"; exit 1
+  fi
 done
 echo "  ✓ ${#SKILLS[@]} skills installed"
 
@@ -106,19 +183,25 @@ HOOKS=(
 )
 
 for hook in "${HOOKS[@]}"; do
-  download "${RAW_BASE}/.kiro/hooks/${hook}.kiro.hook" \
-           "${TARGET_DIR}/.kiro/hooks/${hook}.kiro.hook"
+  if ! download ".kiro/hooks/${hook}.kiro.hook" \
+                "${TARGET_DIR}/.kiro/hooks/${hook}.kiro.hook"; then
+    echo "  ✗ failed to install or verify hook: ${hook}"; exit 1
+  fi
 done
 echo "  ✓ ${#HOOKS[@]} hooks installed"
 
 # --- Step 3: Install steering ---
 echo ""
-echo "[3/5] Installing steering file..."
-download "${RAW_BASE}/.kiro/steering/obsidian-wiki.md" \
-         "${TARGET_DIR}/.kiro/steering/obsidian-wiki.md"
-download "${RAW_BASE}/.kiro/README.md" \
-         "${TARGET_DIR}/.kiro/README.md"
-echo "  ✓ Steering + README installed"
+echo "[3/5] Installing steering files..."
+for steer in "obsidian-wiki.md" "shared-vault.md"; do
+  if ! download ".kiro/steering/${steer}" "${TARGET_DIR}/.kiro/steering/${steer}"; then
+    echo "  ✗ failed to install or verify steering: ${steer}"; exit 1
+  fi
+done
+if ! download ".kiro/README.md" "${TARGET_DIR}/.kiro/README.md"; then
+  echo "  ✗ failed to install or verify .kiro/README.md"; exit 1
+fi
+echo "  ✓ Steering (2) + README installed"
 
 # --- Step 4: Install supporting scripts ---
 echo ""
@@ -135,9 +218,12 @@ SCRIPTS=(
 SCRIPT_OK=0
 SCRIPT_SKIP=0
 for script in "${SCRIPTS[@]}"; do
-  if download "${RAW_BASE}/${script}" "${TARGET_DIR}/${script}" 2>/dev/null; then
+  if download "${script}" "${TARGET_DIR}/${script}"; then rc=0; else rc=$?; fi
+  if [ "$rc" -eq 0 ]; then
     chmod +x "${TARGET_DIR}/${script}" 2>/dev/null || true
     SCRIPT_OK=$((SCRIPT_OK + 1))
+  elif [ "$rc" -eq 2 ]; then
+    echo "  ✗ checksum mismatch: ${script}"; exit 1
   else
     SCRIPT_SKIP=$((SCRIPT_SKIP + 1))
   fi
@@ -158,8 +244,11 @@ TEMPLATES=(
 
 TPL_OK=0
 for tpl in "${TEMPLATES[@]}"; do
-  if download "${RAW_BASE}/${tpl}" "${TARGET_DIR}/${tpl}" 2>/dev/null; then
+  if download "${tpl}" "${TARGET_DIR}/${tpl}"; then rc=0; else rc=$?; fi
+  if [ "$rc" -eq 0 ]; then
     TPL_OK=$((TPL_OK + 1))
+  elif [ "$rc" -eq 2 ]; then
+    echo "  ✗ checksum mismatch: ${tpl}"; exit 1
   fi
 done
 echo "  ✓ ${TPL_OK} templates installed"

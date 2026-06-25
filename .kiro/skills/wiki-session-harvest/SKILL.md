@@ -247,9 +247,54 @@ bash scripts/wiki-lock.sh acquire "$NOTE_PATH"
 bash scripts/wiki-lock.sh release "$NOTE_PATH"
 ```
 
-## Privacy Note
+## Privacy and Secret Redaction (required)
 
-Session data may contain sensitive information (API keys, credentials, personal data). Before filing:
-- Strip any string matching common secret patterns (`sk-...`, `AKIA...`, bearer tokens)
-- Flag sessions that reference private repos or internal URLs
-- Ask user before ingesting sessions from shared/team workspaces
+Session transcripts routinely contain credentials, personal data, and internal
+references. Redaction is mandatory and happens BEFORE any content is written to a
+wiki page, `wiki/log.md`, or `wiki/hot.md`. When in doubt, redact.
+
+### Rule
+
+Replace every match below with `[REDACTED]` (keep the surrounding text so the
+session still reads coherently). Never copy an unredacted secret into the vault.
+If a "Raw Highlights" block cannot be safely redacted, drop the block entirely and
+note `[highlight omitted: contained secrets]`.
+
+### Secret value patterns
+
+- **API keys with known prefixes**: `sk-...`, `sk-ant-...` (Anthropic), `AKIA...`
+  (AWS access key id), `ghp_/gho_/ghu_/ghs_/ghr_...` (GitHub), `xoxb-/xoxp-...`
+  (Slack), `AIza...` (Google), `glpat-...` (GitLab).
+- **Bearer / Authorization tokens**: any `Authorization: Bearer <token>` or
+  `bearer <token>` value.
+- **JWTs**: three base64url segments separated by dots (`eyJ...` . `...` . `...`).
+- **Database connection strings with embedded passwords**: redact the credentials
+  portion of `scheme://user:password@host/...` for `postgres`, `postgresql`,
+  `mysql`, `mongodb`, `mongodb+srv`, `redis`, `rediss`, `amqp`, `amqps`, `mssql`,
+  and similar. Rewrite as `scheme://user:[REDACTED]@host/...`.
+- **Private keys**: any PEM block from `-----BEGIN ... PRIVATE KEY-----` through
+  `-----END ... PRIVATE KEY-----` (RSA, OpenSSH, EC, DSA, PGP). Replace the whole
+  block with `[REDACTED private key]`.
+- **Generic high-entropy assignments**: values after `password=`, `passwd=`,
+  `secret=`, `token=`, `api_key=`, `apikey=`, `access_key=`, `secret_key=`,
+  in URLs, env dumps, and config snippets, even without a recognizable prefix.
+
+### Structured-payload field deny-list
+
+When a transcript contains JSON or YAML, redact the VALUE of any field whose key
+(case-insensitive) is one of: `password`, `passwd`, `pwd`, `secret`,
+`client_secret`, `token`, `access_token`, `refresh_token`, `id_token`, `api_key`,
+`apikey`, `access_key`, `secret_key`, `private_key`, `credentials`, `authorization`,
+`auth`, `session_token`, `cookie`, `connection_string`, `dsn`.
+Example: `"password": "hunter2"` becomes `"password": "[REDACTED]"`.
+
+### Additional handling
+
+- Flag (do not auto-ingest) sessions that reference private repos, internal
+  hostnames, or non-public URLs; ask the user first.
+- Ask the user before ingesting sessions from shared or team workspaces.
+- Redact personal data (emails, phone numbers, home addresses) unless the user
+  has explicitly asked to keep it.
+- After redacting, scan the final page text once more for any of the value
+  patterns above before writing. The vault is committed to git, so a leaked
+  secret is a leaked secret in history.
