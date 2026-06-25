@@ -64,6 +64,16 @@ Before each fetch:
 - **Truncate**: fetched bodies to ~50KB
 - **On failure**: log URL + reason to `wiki/log.md`, continue loop
 
+## Rate Limiting
+
+A full run can issue many requests (up to ~5 angles x 3 searches plus fetches).
+To avoid tripping rate limits or looking like abuse:
+- Pause **1 to 2 seconds between successive web requests** (searches and fetches).
+- Cap total fetches at **20 per run**; if more candidates exist, prioritize by
+  relevance and note the rest as Open Questions rather than fetching everything.
+- On an HTTP 429 or a connection error, back off (double the delay, max ~15s) and
+  retry once; if it still fails, log and move on.
+
 ## Filing Results
 
 After research, create these pages:
@@ -131,6 +141,10 @@ python3 scripts/wiki-mode.py route source "<source-name>"
 python3 scripts/wiki-mode.py route entity "<entity-name>"
 python3 scripts/wiki-mode.py route concept "<concept-name>"
 ```
+
+**Fallback (required):** if the router fails or prints nothing, fall back to the
+generic layout (`wiki/sources/`, `wiki/entities/`, `wiki/concepts/`) and continue.
+Never abort filing because the router is unavailable.
 
 ## Concurrency
 

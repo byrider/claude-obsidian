@@ -21,7 +21,7 @@ Finds past conversations from Kiro IDE, Kiro CLI, and Claude Code, extracts the 
 | **Kiro IDE** (macOS) | `~/Library/Application Support/Kiro/User/globalStorage/kiro.kiroagent/` | JSON (legacy `.chat` + modern extensionless) |
 | **Kiro IDE** (Linux) | `~/.config/Kiro/User/globalStorage/kiro.kiroagent/` | JSON |
 | **Kiro IDE** (Windows) | `%APPDATA%/Kiro/User/globalStorage/kiro.kiroagent/` | JSON |
-| **Kiro CLI** | Per-directory database (SQLite or internal) | Managed by `kiro session list` / `kiro session export` |
+| **Kiro CLI** | `~/.kiro/sessions/cli/{session_id}.json` (metadata) + `{session_id}.jsonl` (conversation) | JSON + append-only JSONL, read directly from disk |
 | **Claude Code** | `~/.claude/projects/<project-hash>/<session-id>.jsonl` | Append-only JSONL |
 
 ## Discovery
@@ -37,8 +37,12 @@ elif [ -d "$HOME/.config/Kiro/User/globalStorage/kiro.kiroagent" ]; then
   KIRO_IDE_PATH="$HOME/.config/Kiro/User/globalStorage/kiro.kiroagent"
 fi
 
-# Kiro CLI (check if kiro command exists)
-command -v kiro >/dev/null 2>&1 && KIRO_CLI=1 || KIRO_CLI=0
+# Kiro CLI — detect by its session store on disk (more reliable than a binary
+# check; the binary may be named `kiro-cli` or `kiro`).
+KIRO_CLI_SESSIONS=""
+if [ -d "$HOME/.kiro/sessions/cli" ]; then
+  KIRO_CLI_SESSIONS="$HOME/.kiro/sessions/cli"
+fi
 
 # Claude Code
 CLAUDE_PATH=""
@@ -56,19 +60,20 @@ fi
 - Try to resolve workspace names from `workspace.json` or base64-decoded directory names
 
 **Kiro CLI sessions:**
-```bash
-# List sessions for the current directory
-kiro-cli chat --list-sessions --format json 2>/dev/null
-```
 
-Session files are stored at `~/.kiro/sessions/cli/`:
-- `{session_id}.json` — metadata (cwd, timestamps, title)
+There is no `kiro session list`/`export` command. Sessions are plain files on
+disk under `~/.kiro/sessions/cli/`, so discover and read them directly:
+- `{session_id}.json` — metadata (cwd, timestamps, title, state)
 - `{session_id}.jsonl` — append-only conversation log
+- `{session_id}.lock` — present only while a session is active (skip these)
 
-To extract content, read the `.jsonl` files directly:
 ```bash
+# Discover CLI sessions (newest first)
 find ~/.kiro/sessions/cli -name "*.jsonl" -type f 2>/dev/null | head -50
 ```
+
+(Interactive commands like `kiro-cli chat --resume`, `/chat save`, and
+`/transcript save` exist for live use but are not needed for bulk harvest.)
 
 **Claude Code sessions:**
 ```bash
@@ -121,9 +126,7 @@ Extract: user messages, assistant responses, tool calls (both structured and tex
 
 Sessions are stored as JSONL files at `~/.kiro/sessions/cli/{session_id}.jsonl`. Each line is a conversation turn. Read the `.jsonl` file directly and parse line-by-line.
 
-Metadata (title, timestamps, cwd) is in the companion `{session_id}.json` file.
-
-If export is unavailable, sessions are stored per-directory in the Kiro database.
+Metadata (title, timestamps, cwd) is in the companion `{session_id}.json` file. Skip any session that still has a `{session_id}.lock` file (it is active).
 
 ### Claude Code JSONL Format
 
@@ -237,6 +240,8 @@ Route session pages through the mode router:
 ```bash
 python3 scripts/wiki-mode.py route session "<session-topic>"
 ```
+If the router fails or prints nothing, fall back to the generic layout
+(`wiki/sessions/`) and continue; never block filing on the router.
 
 ## Concurrency
 

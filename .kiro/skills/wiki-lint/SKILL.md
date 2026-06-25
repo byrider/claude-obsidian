@@ -76,3 +76,25 @@ tags: [meta, lint]
 - Merging duplicate pages
 
 Always show the lint report first and ask: "Should I fix these automatically, or do you want to review each one?"
+
+## Rollback Safety (before auto-fixing)
+
+Auto-fix can edit many files at once, so make the change reversible first:
+
+1. **Checkpoint with git** so the user can undo everything in one step:
+   ```bash
+   if [ -d .git ]; then
+     git add -- wiki/ && git commit -m "wiki-lint: checkpoint before auto-fix $(date '+%Y-%m-%d %H:%M')" -- wiki/ 2>/dev/null || true
+   fi
+   ```
+   Tell the user the checkpoint commit exists and that `git revert <sha>` (or
+   `git restore --source=HEAD~1 wiki/`) undoes the batch. If git is unavailable,
+   say so and ask whether to proceed without an undo point.
+2. **Suppress hot-cache churn** during the batch of fixes, then refresh once:
+   ```bash
+   touch .vault-meta/batch-in-progress
+   # ... apply all auto-fixes ...
+   rm -f .vault-meta/batch-in-progress
+   ```
+   Always remove the sentinel afterward, even if a fix fails partway. Update
+   `wiki/hot.md` once after the batch completes.

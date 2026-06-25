@@ -28,6 +28,24 @@ python3 scripts/wiki-mode.py route <type> "<name>"
 ```
 This returns the correct vault-relative path for the page based on the active mode.
 
+**Fallback (required):** if the command fails or prints nothing (Python missing,
+script error, non-zero exit), do NOT abort the ingest. Fall back to the generic
+layout and tell the user once: `wiki/sources/`, `wiki/entities/`, `wiki/concepts/`,
+`wiki/sessions/`. Never block filing on the router.
+
+## Size Guard
+
+Before reading a source, check its size so a huge file does not blow up context:
+```bash
+wc -c < "<file>"   # bytes
+```
+- Under 5 MB: proceed normally.
+- 5 MB to 25 MB: warn the user and confirm before ingesting; prefer summarizing
+  over verbatim inclusion, and never paste the whole file into a wiki page.
+- Over 25 MB, or a binary/non-text file: do NOT auto-ingest. Ask the user how to
+  proceed (split it, point at a specific section, or skip).
+For URLs, apply the same limit to the fetched body after cleaning.
+
 ## Concurrency
 
 Every wiki page write MUST be preceded by lock acquisition:
@@ -75,10 +93,20 @@ When user passes a URL:
 ## Batch Ingest
 
 1. List all files to process, confirm with user
-2. Process each source following single ingest flow
-3. After all sources: cross-reference pass
-4. Update index, hot cache, and log once at the end
-5. Report summary
+2. **Suppress hot-cache churn:** create the batch sentinel so the
+   `hot-cache-on-save` hook does not rewrite `wiki/hot.md` on every file:
+   ```bash
+   touch .vault-meta/batch-in-progress
+   ```
+3. Process each source following single ingest flow
+4. After all sources: cross-reference pass
+5. Remove the sentinel, then update index, hot cache, and log ONCE at the end:
+   ```bash
+   rm -f .vault-meta/batch-in-progress
+   ```
+   Always remove the sentinel even if the batch fails partway (so the hook is not
+   left disabled).
+6. Report summary
 
 ## Frontmatter Schema (Sources)
 
